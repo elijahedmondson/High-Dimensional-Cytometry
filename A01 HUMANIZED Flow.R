@@ -19,19 +19,22 @@ data_dir <- "C:/Users/edmondsonef/Desktop/Humanized/Flow/"
 #study_dir <- "1-05Jan2022/"
 #study_dir <- "2-02Feb2022/"
 #study_dir <- "3-15Feb2022 - NSG/"
-study_dir <- "4-28Feb2022/"
+#study_dir <- "4-28Feb2022/"
 #study_dir <- "5-02Mar2022/"
 #study_dir <- "6-10Mar2022/"
-#study_dir <- "7-24Mar2022/"
+study_dir <- "7-24Mar2022/"
 
 #ws <- open_flowjo_xml(paste0(data_dir,study_dir,"15679 06Jan2022 Simone.wsp"))
 #ws <- open_flowjo_xml(paste0(data_dir,study_dir,"15701 02Feb2022 Simone.wsp"))
 #ws <- open_flowjo_xml(paste0(data_dir,study_dir,"15708 15Feb2022 Simone.wsp"))
 #ws <- open_flowjo_xml(paste0(data_dir,study_dir,"15716 28Feb2022 Simone.wsp"))
-ws <- open_flowjo_xml(paste0(data_dir,study_dir,"15719 02Mar2022 Simone.wsp"))
-ws <- open_flowjo_xml(paste0(data_dir,study_dir,"15726 10Mar2022 Simone.wsp"))
-ws <- open_flowjo_xml(paste0(data_dir,study_dir,"15738 23Mar2022 LASP.wsp"))
-ws <- open_flowjo_xml(paste0(data_dir,study_dir,"15719 02Mar2022 Simone.wsp"))
+#ws <- open_flowjo_xml(paste0(data_dir,study_dir,"15719 02Mar2022 Simone.wsp"))
+#ws <- open_flowjo_xml(paste0(data_dir,study_dir,"15726 10Mar2022 Simone.wsp"))
+#ws <- open_flowjo_xml(paste0(data_dir,study_dir,"15738 23Mar2022 LASP.wsp"))
+ws <- open_flowjo_xml(paste0(data_dir,study_dir,".wsp"))
+ws <- open_flowjo_xml(paste0(data_dir,study_dir,".wsp"))
+ws <- open_flowjo_xml(paste0(data_dir,study_dir,".wsp"))
+ws <- open_flowjo_xml(paste0(data_dir,study_dir,".wsp"))
 #ws <- open_flowjo_xml(paste0(data_dir,study_dir,"15738 24Mar2022 LASP 2nd day.wsp"))
 ws
 fj_ws_get_samples(ws, group_id = c(5))
@@ -93,7 +96,7 @@ plot <- ggplot(ggdf, aes(x = sample_id, y = proportion, fill = cluster)) +
   scale_fill_manual(values = color_clusters) 
 
 setwd("C:/Users/edmondsonef/Desktop/R-plots/")
-tiff("NSG-SGM3_blood_marrow_spl.tiff", units="in", width=10, height=7, res=600)
+tiff("6-10Mar_blood_marrow_spl.tiff", units="in", width=10, height=7, res=600)
 plot
 dev.off()
 #########
