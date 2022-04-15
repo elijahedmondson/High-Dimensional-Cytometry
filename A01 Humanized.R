@@ -21,10 +21,10 @@ study_dir <- ""
 ws <- open_flowjo_xml(paste0(data_dir,study_dir,"19-331-122 Full Dataset WSP 220414.wsp"))
 ws
 #fj_ws_get_samples(ws, group_id = c(1))
-gs <- flowjo_to_gatingset(ws, name = 3, path=paste0(data_dir,study_dir))#,compensation = compensation_matrix)
+gs <- flowjo_to_gatingset(ws, name = 13, path=paste0(data_dir,study_dir))#,compensation = compensation_matrix)
 gs_get_pop_paths(gs)
 recompute(gs)
-plot(gs)
+#plot(gs)
 
 ######### % Human
 ######### % Human
@@ -49,32 +49,24 @@ counts_table <- counts_table %>% pivot_wider(id_cols = name,
                                              values_from = c("Count", "ParentCount"))
 write.csv(counts_table, "C:/Users/edmondsonef/Desktop/counts_table.csv")
 
+
 counts_table <- read.csv("C:/Users/edmondsonef/Desktop/counts_table.csv")
-
-
 counts_table_t <- counts_table[-1] %>% t() %>% as.data.frame() %>% setNames(counts_table[,1])
-
-
 props_table <- t(t(counts_table_t) / colSums(counts_table_t[])) * 100
-
 props_table_t <- props_table[] %>% t() %>% as.data.frame() %>% setNames(row.names(props_table))
-
-
 counts <- as.data.frame.matrix(counts_table_t)
 props <- as.data.frame.matrix(props_table)
-
 write.csv(props, "C:/Users/edmondsonef/Desktop/props.csv")
+
+
 props <- read.csv("C:/Users/edmondsonef/Desktop/props.csv", header = T, stringsAsFactors = F)
-
 props <- data.frame(props[,-1], row.names = props[,1])
-
 ggdf <- reshape2::melt(data.frame(cluster = rownames(props), props), 
                        id.vars = "cluster", value.name = "proportion", variable.name = "sample_id")
 write.csv(ggdf, "C:/Users/edmondsonef/Desktop/ggdf.csv")
+
+
 ggdf <- read.csv("C:/Users/edmondsonef/Desktop/ggdf.csv", header = T, stringsAsFactors = F)
-
-
-
 color_clusters <- c("#DC050C", "#FB8072", "#1965B0", "#7BAFDE", "#882E72", 
                     "#B17BA6", "#FF7F00", "#FDB462", "#E7298A", "#E78AC3", 
                     "#33A02C", "#B2DF8A", "#55A1B1", "#8DD3C7", "#A6761D", 
@@ -84,12 +76,12 @@ color_clusters <- c("#DC050C", "#FB8072", "#1965B0", "#7BAFDE", "#882E72",
 
 plot <- ggplot(ggdf, aes(x = sample_id, y = proportion, fill = cluster)) +
   geom_bar(stat = "identity") +
-  facet_wrap(~ tissue, scales = "free_x") +
+  facet_wrap(~ Group, scales = "free_x") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   scale_fill_manual(values = color_clusters) 
 
-setwd("C:/Users/edmondsonef/Desktop/R-plots/")
+setwd("C:/Users/edmondsonef/Desktop/")
 tiff("_plots.tiff", units="in", width=10, height=7, res=600)
 plot
 dev.off()
