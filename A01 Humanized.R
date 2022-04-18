@@ -64,9 +64,8 @@ props <- data.frame(props[,-1], row.names = props[,1])
 ggdf <- reshape2::melt(data.frame(cluster = rownames(props), props), 
                        id.vars = "cluster", value.name = "proportion", variable.name = "sample_id")
 write.csv(ggdf, "C:/Users/edmondsonef/Desktop/ggdf.csv")
+#ggdf <- read.csv("C:/Users/edmondsonef/Desktop/ggdf.csv", header = T, stringsAsFactors = F)
 
-
-ggdf <- read.csv("C:/Users/edmondsonef/Desktop/ggdf.csv", header = T, stringsAsFactors = F)
 color_clusters <- c("#DC050C", "#FB8072", "#1965B0", "#7BAFDE", "#882E72", 
                     "#B17BA6", "#FF7F00", "#FDB462", "#E7298A", "#E78AC3", 
                     "#33A02C", "#B2DF8A", "#55A1B1", "#8DD3C7", "#A6761D", 
@@ -74,14 +73,21 @@ color_clusters <- c("#DC050C", "#FB8072", "#1965B0", "#7BAFDE", "#882E72",
                     "#aa8282", "#d4b7b7", "#8600bf", "#ba5ce3", "#808000", 
                     "#aeae5c", "#1e90ff", "#00bfff", "#56ff0d", "#ffff00")
 
-plot <- ggplot(ggdf, aes(x = sample_id, y = proportion, fill = cluster)) +
+
+
+data <- read_excel("C:/Users/edmondsonef/Desktop/agg.xlsx", sheet = "ggdf.spleen.1")
+ggdf <- data
+
+
+
+plot <- ggplot(ggdf, aes(x = ID, y = proportion, fill = cluster)) +
   geom_bar(stat = "identity") +
   facet_wrap(~ Group, scales = "free_x") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   scale_fill_manual(values = color_clusters) 
-
-setwd("C:/Users/edmondsonef/Desktop/")
+plot
+setwd("C:/Users/edmondsonef/Desktop/R-plots/")
 tiff("_plots.tiff", units="in", width=10, height=7, res=600)
 plot
 dev.off()
@@ -343,6 +349,7 @@ ggsave(paste0(dir_QC, "file_PCA.png"), width = 10)
 ########### 4. Create Aggegregate Files ###########
 ###########  ###########
 data_dir <- "C:/Users/edmondsonef/Desktop/Humanized/Flow/Aggregate/" 
+study_dir <- ""
 dir_prepr <- paste0(data_dir,study_dir,"1-Preprocessed/") #where the preprocessed data will be stored
 dir_QC <- paste0(data_dir,study_dir,"2-QC/") #where the data QC results will be stored
 dir_RDS <- paste0(data_dir,study_dir,"3-RDS/") #where the R objects will be stored
@@ -352,32 +359,32 @@ dir_raw <- paste0(data_dir,study_dir) #where the raw data is located
 
 
 # 15. Choose the number of cells to include in the aggregate file
-n <- 2000000 
+n <- 10000000 
 
 # 16. Make an aggregate file
 set.seed(2020)
 
 
-files <- list.files(path = dir_group, pattern = "Samples")
+files <- list.files(path = dir_prepr, pattern = "Samples")
 files
-paste0(dir_group, files)
-agg <- AggregateFlowFrames(paste0(dir_group, files),
+paste0(dir_prepr, files)
+agg <- AggregateFlowFrames(paste0(dir_prepr, files),
                            cTotal = n,
                            writeOutput = TRUE,
-                           outputFile = paste0(dir_group, "aggregate.fcs"))
+                           outputFile = paste0(dir_results, "aggregate.fcs"))
 
 
 
 ########### 5. Train FlowSOM model ###########
 ###########  ###########
 
-#agg <- read.FCS(paste0(dir_group,'aggregate.fcs'), truncate_max_range = FALSE)
+#agg <- read.FCS(paste0(dir_results,'aggregate.fcs'), truncate_max_range = FALSE)
 
 
 #Level 1 - create model to separate human cells from mouse
 #SOM_x <- 10
 #SOM_y <- 10
-n_meta <- 10
+n_meta <- 15
 seed <- 2020
 scaling <- FALSE
 #scaling <- TRUE
@@ -385,28 +392,26 @@ scaling <- FALSE
 ###All...###
 ###All...###
 ###All...###
-fsom <- FlowSOM(input = agg,
+fsom.all <- FlowSOM(input = agg,
                 scale = F, 
                 transform = T,
-                toTransform = c(7:17),
-                colsToUse = c(7:17),
+                toTransform = c(4,7:17),
+                colsToUse = c(4, 7:17),
                 seed = seed,
-                nClus = n_meta)
-PlotStars(fsom = fsom,
-          backgroundValues = fsom$metaclustering)
+                nClus = 15)
+PlotStars(fsom = fsom.all,
+          backgroundValues = fsom.all$metaclustering)
 
-tsne <- Rtsne::Rtsne(fsom$map$codes, perplexity = 6)
-PlotStars(fsom = fsom, view = tsne$Y,
-          backgroundValues = fsom$metaclustering)
+#tsne <- Rtsne::Rtsne(fsom.all$map$codes, perplexity = 6)
+#PlotStars(fsom = fsom.all, view = tsne$Y,
+#          backgroundValues = fsom.all$metaclustering)
 
-FlowSOMmary(fsom = fsom,
-            plotFile = paste0(dir_group, "ALL_fsom.trans_summary.pdf"))
-saveRDS(fsom, paste(dir_RDS, "fsom.rds"))
-fsom$prettyColnames
+FlowSOMmary(fsom = fsom.all,
+            plotFile = paste0(dir_results, "ALL_fsom_summary.pdf"))
+saveRDS(fsom.all, paste(dir_RDS, "fsom_all.rds"))
+fsom.all$prettyColnames
 
-QueryStarPlot(fsom, query="BUV805-A")
-ManualVector()
-QueryMultiple(fsom = fsom_level1, cellTypes = )
+rm(fsom.all)
 ###All...###
 ###All...###
 ###All...###
@@ -417,10 +422,10 @@ QueryMultiple(fsom = fsom_level1, cellTypes = )
 fsom_level1 <- FlowSOM(input = agg,
                        scale = F,
                        transform = T,
-                       toTransform = c(7:17),
+                       toTransform = c(4,7:17),
                        colsToUse = c("BUV395-A","BUV805-A"),
                        seed = seed,
-                       nClus = 8)
+                       nClus = 10)
 
 PlotLabels(fsom_level1, labels = fsom_level1$metaclustering)
 p <- PlotMarker(fsom_level1, "BUV805-A")
@@ -431,29 +436,33 @@ print(p, newpage = T)
 Plot2DScatters(fsom = fsom_level1, 
                channelpairs = list(c("BUV805-A", "BUV395-A")),
                metaclusters = 1:8, 
-               plotFile = paste0(dir_group, "mCD45-hCD45_level1.png"))
+               plotFile = paste0(dir_results, "mCD45-hCD45_level1.png"))
 
 
 FlowSOMmary(fsom = fsom_level1,
-            plotFile = paste0(dir_group, "L1_fsom_summary.pdf"))
+            plotFile = paste0(dir_results, "L1_fsom_summary.pdf"))
 
 saveRDS(fsom_level1, paste(dir_RDS, "fsom_level1.rds"))
-#MC 1 and 5 are the huCD45+
-#MC 2, 3, and 4 are the mCD45+
+#MC 5,7,8 are the huCD45+
+#MC 1,2,3,4 are the mCD45+
 
 # Subset the original fcs file
 fsom_tmp <- NewData(fsom_level1, agg)
 clustering <- GetMetaclusters(fsom_tmp)
-agg_tmp_hCD45 <- agg[clustering %in% c(1,2,4,5),]
+agg_tmp_hCD45 <- agg[clustering %in% c(5,6,10,8,7),]
 #agg_tmp_mCD45 <- agg[clustering %in% c(),]
 
 #HUMAN: Create hCD45 subset
+fsom_level2_hCD45$prettyColnames
 fsom_level2_hCD45 <- FlowSOM(input = agg_tmp_hCD45,
                              scale = F,
+                             transform = T,
+                             toTransform = c(4,7:17),
                              colsToUse = c(4,7:17),
                              #colsToUse = c(7:12,15:17),
-                             seed = 2020)
-
+                             seed = 1985,
+                             nClus = 10)
+PlotLabels(fsom_level2_hCD45, labels = fsom_level2_hCD45$metaclustering)
 p <- PlotMarker(fsom_level2_hCD45, "BUV805-A")
 print(p, newpage = T)
 p <- PlotMarker(fsom_level2_hCD45, "BUV395-A")
@@ -462,18 +471,51 @@ print(p, newpage = T)
 PlotStars(fsom = fsom_level2_hCD45,
           backgroundValues = fsom_level2_hCD45$metaclustering)
 FlowSOMmary(fsom = fsom_level2_hCD45,
-            plotFile = paste0(dir_group, "L2_hCD45_fsom_summary.pdf"))
+            plotFile = paste0(dir_results, "L2_hCD45_fsom_summary.pdf"))
 
 saveRDS(fsom_level2_hCD45, paste(dir_RDS, "fsom_level2_hCD45.rds"))
 
-#MOUSE: Create mCD45 subset
-fsom_level2_mCD45 <- FlowSOM(input = agg_tmp_mCD45,
+
+#########L3
+#########L3
+#########L3
+
+
+fsom_tmp <- NewData(fsom_level2_hCD45, agg)
+clustering <- GetMetaclusters(fsom_tmp)
+agg_tmp_hCD45 <- agg[clustering %in% c(1:6,8,9,10),]
+#agg_tmp_mCD45 <- agg[clustering %in% c(),]
+
+#HUMAN: Create hCD45 subset
+fsom_level3_hCD45 <- FlowSOM(input = agg_tmp_hCD45,
                              scale = F,
-                             colsToUse = c(7:17),
-                             seed = 2020)
-saveRDS(fsom_level2_mCD45, paste(dir_RDS, "fsom_level2_mCD45.rds"))
-FlowSOMmary(fsom = fsom_level2_mCD45,
-            plotFile = paste0(dir_group, "L2_mCD45_fsom_summary.pdf")) 
+                             transform = T,
+                             toTransform = c(4,7:17),
+                             colsToUse = c(4,7:17),
+                             #colsToUse = c(7:12,15:17),
+                             seed = 2023,
+                             nClus = 12)
+
+
+PlotStars(fsom = fsom_level3_hCD45,
+          backgroundValues = fsom_level3_hCD45$metaclustering)
+FlowSOMmary(fsom = fsom_level3_hCD45,
+            plotFile = paste0(dir_results, "L3_hCD45_fsom_summary.pdf"))
+
+saveRDS(fsom_level3_hCD45, paste(dir_RDS, "fsom_level3_hCD45.rds"))
+
+#########L3
+#########L3
+#########L3
+
+#MOUSE: Create mCD45 subset
+#fsom_level2_mCD45 <- FlowSOM(input = agg_tmp_mCD45,
+#                             scale = F,
+#                             colsToUse = c(7:17),
+#                             seed = 2020)
+#saveRDS(fsom_level2_mCD45, paste(dir_RDS, "fsom_level2_mCD45.rds"))
+#FlowSOMmary(fsom = fsom_level2_mCD45,
+#            plotFile = paste0(dir_results, "L2_mCD45_fsom_summary.pdf")) 
 
 
 
@@ -496,7 +538,7 @@ channel_pairs = list(c("FSC-A", "SSC-A"),
                      c("PE-CF594-A", "BV786-A"),
                      c("BV786-A", "PE-A"),
                      c("BUV805-A", "BUV395-A"))
-metaclusters_of_interest <- seq_len(n_meta)
+metaclusters_of_interest <- seq_len(10)
 clusters_of_interest <- NULL
 
 # 20.(A)(ii) Make the 2D scatter plots
@@ -504,7 +546,7 @@ Plot2DScatters(fsom = fsom,
                channelpairs = channel_pairs,
                metaclusters = metaclusters_of_interest,
                clusters = clusters_of_interest,
-               plotFile = paste0(dir_group, "fsom_2D_scatters.png"))
+               plotFile = paste0(dir_results, "fsom_2D_scatters.png"))
 
 
 ########### 7. Test with Manual Gating ###########
@@ -517,13 +559,13 @@ wspFile = "C:/Users/edmondsonef/Desktop/Humanized/Flow/Aggregate/19-331-122 Full
 ws <- open_flowjo_xml(wspFile)
 ws
 fj_ws_get_samples(ws, group_id = 7)
-files <- list.files(path = dir_group, pattern = "Samples")
+files <- list.files(path = dir_prepr, pattern = "Samples")
 files
 
 # 20.(B) Check the consistency with manual labeling
 # 20.(B)(i) Extract the gating information from the wsp file
 gating <- GetFlowJoLabels(files = files, cellTypes = "hCD45+",
-                          wspFile = wspFile, group =7,
+                          wspFile = wspFile, group =4,
                           path = dir_raw, additional.sampleID = TRUE)
 ####*EFE TIP: PHYSICALLY REMOVE CONTROLS, etc####
 
@@ -585,7 +627,7 @@ PlotPies(fsom = fsom,
          cellTypes = factor(aggregate_labels, levels = c("Unlabeled",
                                                          cell_types_of_interest)))
 
-ggsave(paste0(dir_group, "Human_fsom_Labeled.pdf"))
+ggsave(paste0(dir_results, "Human_fsom_Labeled.pdf"))
 
 
 
@@ -612,11 +654,11 @@ AddStarsPies(p = p, # Legend to show how it should be
                value = rep(1, length(files)),
                Markers = files),
              colorPalette = file_colors)
-ggsave(paste0(dir_group, "fsom_filecontribution.pdf"))
+ggsave(paste0(dir_results, "fsom_filecontribution.pdf"))
 
 PlotManualBars(fsom, list_insteadof_plots = T, 
                manualVector = factor(aggregate_labels, levels = c(cell_types_of_interest)))
-ggsave(paste0(dir_group, "fsom_filecontribution.pdf"))  
+ggsave(paste0(dir_results, "fsom_filecontribution.pdf"))  
 
 
 ########## 8. Discovery and downstream analysis ###########
@@ -650,10 +692,10 @@ query <- list("B cells" = c("CD19 [APC-F750]" = "high", "CD3" = "low"),
 # 21.(B)(ii) Retrieve the cluster labels based on the query
 labels <- QueryMultiple(fsom = fsom,
                         cellTypes = query,
-                        plotFile = paste0(dir_group, "fsom_QueryStarPlot.pdf"))
+                        plotFile = paste0(dir_results, "fsom_QueryStarPlot.pdf"))
 
 # 21.(B)(iii) Show the retrieved labels on the FlowSOM tree
-#library(RColorBrewer)
+library(RColorBrewer)
 #display.brewer.all()
 
 PlotVariable(fsom = fsom, 
@@ -682,13 +724,13 @@ dir_RDS <- paste0(data_dir,study_dir,"3-RDS/") #where the R objects will be stor
 dir_results <- paste0(data_dir,study_dir,"4-Results/") #where the results will be stored
 dir_raw <- paste0(data_dir,study_dir) #where the raw data is located
 
-#dir_group <- paste0(dir_raw,"/1-Preprocessed/NSG/")
-#dir_group <- paste0(dir_raw,"/1-Preprocessed/NSG-IL15/")
-dir_group <- paste0(dir_raw,"/1-Preprocessed/BM/")
-#dir_group <- paste0(dir_raw,"/1-Preprocessed/")
+#dir_results <- paste0(dir_raw,"/1-Preprocessed/NSG/")
+#dir_results <- paste0(dir_raw,"/1-Preprocessed/NSG-IL15/")
+dir_results <- paste0(dir_raw,"/1-Preprocessed/BM/")
+#dir_results <- paste0(dir_raw,"/1-Preprocessed/")
 
-
-files <- list.files(path = dir_group, pattern = "Samples")
+s
+files <- list.files(path = dir_prepr, pattern = "Samples")
 files
 fsom <- readRDS("C:/Users/edmondsonef/Desktop/Humanized/Flow/6-10Mar2022/3-RDS/ fsom_level2_hCD45.rds")
 fsom <- readRDS("C:/Users/edmondsonef/Desktop/Humanized/Flow/7-24Mar2022/3-RDS/ fsom_level2_hCD45.rds")
@@ -706,15 +748,15 @@ MFIs <- c("CD3", "CD19 [APC-F750]", "huCD45",
 MFIs <- c("CD56")  
 # Get the features
 features <- GetFeatures(fsom = fsom,
-                        files = paste0(dir_group, files),
+                        files = paste0(dir_prepr, files[c(1:14,16,17,23,24,27,28,32,35,37,39,40,44,45,50,52,55,60,63,68,70,72,74:97)]),
                         filenames = files,
                         type = types,
                         MFI = MFIs)
+files[1:14,16,17,23,24,27,28,32,35,37,39,40,44,45,50,52,55,60,63,68,70,72,74:97]
 
+grouplist <- data1$Group
 
-
-
-file_names = paste0(dir_group, files)
+file_names = paste0(dir_prepr, files)
 fsom <- fsom_level2_hCD45
 # 23. Define the groups and feature you would want to compare.
 feature <- "MFIs"
@@ -724,7 +766,7 @@ grouplist = list("NSG-IL15" = files[1:4], "NSG" = files[5:8])
 # 24. Compare the 2 groups of interest
 stats <- GroupStats(features$cluster_MFIs,
                     #groups = grouplist)
-                    groups = list("NSG-IL15" = files[1:4], "NSG" = files[5:8]))
+                    groups = grouplist)
 
 # 25. Show the findings of step 24 on the trees
 # Define the plotting variables
