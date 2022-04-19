@@ -69,7 +69,7 @@ write.csv(ggdf, "C:/Users/edmondsonef/Desktop/ggdf.csv")
 
 
 
-data <- read_excel("C:/Users/edmondsonef/Desktop/agg.xlsx", sheet = "Final.spl")
+data <- read_excel("C:/Users/edmondsonef/Desktop/agg.xlsx", sheet = "Final.blood")
 ggdf <- data
 
 
@@ -85,12 +85,12 @@ plot <- ggplot(ggdf, aes(x = ID, y = proportion, fill = cluster)) +
   facet_wrap(~ GroupX, scales = "free_x") +
   theme_bw() +
   theme(axis.title.x=element_blank(), text = element_text(size = 10))+
-  labs(title="Spleen") +
+  labs(title="Blood") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   scale_fill_manual(values = color_clusters) 
 plot
 setwd("C:/Users/edmondsonef/Desktop/R-plots/")
-tiff("spl_plots.tiff", units="in", width=10, height=4, res=600)
+tiff("blood_plots.tiff", units="in", width=10, height=4, res=600)
 plot
 dev.off()
 ######### STACKED BAR CHART
