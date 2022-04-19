@@ -66,29 +66,31 @@ ggdf <- reshape2::melt(data.frame(cluster = rownames(props), props),
 write.csv(ggdf, "C:/Users/edmondsonef/Desktop/ggdf.csv")
 #ggdf <- read.csv("C:/Users/edmondsonef/Desktop/ggdf.csv", header = T, stringsAsFactors = F)
 
-color_clusters <- c("#DC050C", "#FB8072", "#1965B0", "#7BAFDE", "#882E72", 
-                    "#B17BA6", "#FF7F00", "#FDB462", "#E7298A", "#E78AC3", 
-                    "#33A02C", "#B2DF8A", "#55A1B1", "#8DD3C7", "#A6761D", 
-                    "#E6AB02", "#7570B3", "#BEAED4", "#666666", "#999999", 
-                    "#aa8282", "#d4b7b7", "#8600bf", "#ba5ce3", "#808000", 
-                    "#aeae5c", "#1e90ff", "#00bfff", "#56ff0d", "#ffff00")
 
 
 
-data <- read_excel("C:/Users/edmondsonef/Desktop/agg.xlsx", sheet = "ggdf.spleen.1")
+data <- read_excel("C:/Users/edmondsonef/Desktop/agg.xlsx", sheet = "Final.spl")
 ggdf <- data
 
 
+color_clusters <- c("#7BAFDE", "#7570B3", "#882E72", "#B17BA6", "#FF7F00", 
+                    "#DC050C", "#FB8072", "#FDB462", #"#E7298A", "#E78AC3", 
+                    "#33A02C", "#B2DF8A", "#55A1B1", "#8DD3C7", "#A6761D", 
+                    "#E6AB02", "#1965B0", "#BEAED4", "#666666", "#999999", 
+                    "#aa8282", "#d4b7b7", "#8600bf", "#ba5ce3", "#808000", 
+                    "#aeae5c", "#1e90ff", "#00bfff", "#56ff0d", "#ffff00")
 
 plot <- ggplot(ggdf, aes(x = ID, y = proportion, fill = cluster)) +
   geom_bar(stat = "identity") +
-  facet_wrap(~ Group, scales = "free_x") +
+  facet_wrap(~ GroupX, scales = "free_x") +
   theme_bw() +
+  theme(axis.title.x=element_blank(), text = element_text(size = 10))+
+  labs(title="Spleen") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   scale_fill_manual(values = color_clusters) 
 plot
 setwd("C:/Users/edmondsonef/Desktop/R-plots/")
-tiff("_plots.tiff", units="in", width=10, height=7, res=600)
+tiff("spl_plots.tiff", units="in", width=10, height=4, res=600)
 plot
 dev.off()
 ######### STACKED BAR CHART
