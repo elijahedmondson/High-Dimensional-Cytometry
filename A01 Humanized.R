@@ -15,21 +15,38 @@ library(lme4)
 library(multcomp)
 ########### 1. Generate Counts From Manual Gating ########### 
 ########### 
-data_dir <- "C:/Users/edmondsonef/Desktop/Humanized/Flow/Aggregate/" 
+data_dir <- "C:/Users/edmondsonef/Desktop/Humanized/Flow/Aggregate/TD033/" 
 study_dir <- ""
 
-ws <- open_flowjo_xml(paste0(data_dir,study_dir,"19-331-122 Full Dataset WSP 220414.wsp"))
+ws <- open_flowjo_xml(paste0(data_dir,"19-331-122 Full Dataset WSP 220414.wsp"))
 ws
-#fj_ws_get_samples(ws, group_id = c(1))
-gs <- flowjo_to_gatingset(ws, name = 13, path=paste0(data_dir,study_dir))#,compensation = compensation_matrix)
+
+fj_ws_get_samples(ws, group_id = c(1))$name
+
+
+#myfiles <- list.files(path="C:/Users/edmondsonef/Desktop/Humanized/Flow/Aggregate", pattern = "Samples", ignore.case = TRUE)
+#fs <- read.flowSet(myfiles, path="C:/Users/edmondsonef/Desktop/Humanized/Flow/Aggregate/TD033", truncate_max_range = FALSE)
+#CS <- load_cytoset_from_fcs(files = myfiles, path="C:/Users/edmondsonef/Desktop/Humanized/Flow/Aggregate/TD033")
+
+###THE ISSUE IS ALL THE NEW FILES IN THE COMBING WS HAVE THE NO. OF CELLS AT THE END .fsc_xxxx????###
+
+
+ gs <- flowjo_to_gatingset(ws, name = 6, path=data_dir)#, 
+                           channel.ignore.case = F) #,
+                           skip_faulty_gate = T,
+                           include_empty_tree = F,
+                           cytoset = CS) #,compensation = compensation_matrix)
+gs
 gs_get_pop_paths(gs)
 recompute(gs)
-#plot(gs)
+plot(gs)
+
+
 
 ######### % Human
 ######### % Human
 ######### % Human
-human_counts <- gs_pop_get_count_fast(gs, format = "long", subpopulations = gs_get_pop_paths(gs)[4])
+human_counts <- gs_pop_get_count_fast(gs, format = "long", subpopulations = gs_get_pop_paths(gs)[1])
 human_counts
 human_counts <- human_counts %>% pivot_wider(id_cols = name, 
                                              names_from = Population, 
@@ -380,7 +397,7 @@ agg <- AggregateFlowFrames(paste0(dir_prepr, files),
 ########### 5. Train FlowSOM model ###########
 ###########  ###########
 
-#agg <- read.FCS(paste0(dir_results,'aggregate.fcs'), truncate_max_range = FALSE)
+agg <- read.FCS(paste0(dir_results,'aggregate.fcs'), truncate_max_range = FALSE)
 
 
 #Level 1 - create model to separate human cells from mouse
