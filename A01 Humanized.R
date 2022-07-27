@@ -106,7 +106,6 @@ plot <- ggplot(ggdf, aes(x = ID, y = proportion, fill = cluster)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   scale_fill_manual(values = color_clusters) 
 plot
-setwd("C:/Users/edmondsonef/Desktop/R-plots/")
 tiff("blood_plots.tiff", units="in", width=10, height=4, res=600)
 plot
 dev.off()
