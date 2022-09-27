@@ -13,15 +13,30 @@ library(ggpubr)
 library(dplyr)
 library(lme4)
 library(multcomp)
+library(tidyr)
+
+library(ggplot2)
+library(gridExtra)
+library(readxl)
+library(ggpubr)
+library(Rmisc)
+library(tidyverse)
+library(plyr)
+library(GGally)
+library(ggplot2)
+library(tidyverse)
+library(gapminder)
+
 ########### 1. Generate Counts From Manual Gating ########### 
 ########### 
-data_dir <- "C:/Users/edmondsonef/Desktop/Humanized/Flow/Aggregate/TD033/" 
+data_dir <- "C:/Users/edmondsonef/Desktop/Humanized/Flow/Aggregate/FCS/" 
 study_dir <- ""
 
-ws <- open_flowjo_xml(paste0(data_dir,"19-331-122 Full Dataset WSP 220414.wsp"))
+ws <- open_flowjo_xml(paste0(data_dir,"19-331-123 Full Dataset.wsp"))
+#ws <- open_flowjo_xml(paste0(data_dir,"19-331-122 Full Dataset WSP 220414.wsp"))
 ws
 
-fj_ws_get_samples(ws, group_id = c(1))$name
+#fj_ws_get_samples(ws, group_id = c(1))$name
 
 
 #myfiles <- list.files(path="C:/Users/edmondsonef/Desktop/Humanized/Flow/Aggregate", pattern = "Samples", ignore.case = TRUE)
@@ -31,13 +46,13 @@ fj_ws_get_samples(ws, group_id = c(1))$name
 ###THE ISSUE IS ALL THE NEW FILES IN THE COMBING WS HAVE THE NO. OF CELLS AT THE END .fsc_xxxx????###
 
 
- gs <- flowjo_to_gatingset(ws, name = 6, path=data_dir)#, 
-                           channel.ignore.case = F) #,
-                           skip_faulty_gate = T,
-                           include_empty_tree = F,
-                           cytoset = CS) #,compensation = compensation_matrix)
+ gs <- flowjo_to_gatingset(ws, name = 6, path=data_dir) 
+                           # channel.ignore.case = F,
+                           # skip_faulty_gate = T,
+                           # include_empty_tree = F,
+                           # cytoset = CS) #,compensation = compensation_matrix)
 gs
-gs_get_pop_paths(gs)
+gs_get_pop_paths(gs)[4]
 recompute(gs)
 plot(gs)
 
@@ -46,7 +61,7 @@ plot(gs)
 ######### % Human
 ######### % Human
 ######### % Human
-human_counts <- gs_pop_get_count_fast(gs, format = "long", subpopulations = gs_get_pop_paths(gs)[1])
+human_counts <- gs_pop_get_count_fast(gs, format = "long", subpopulations = gs_get_pop_paths(gs)[4])
 human_counts
 human_counts <- human_counts %>% pivot_wider(id_cols = name, 
                                              names_from = Population, 
@@ -86,32 +101,53 @@ write.csv(ggdf, "C:/Users/edmondsonef/Desktop/ggdf.csv")
 
 
 
-data <- read_excel("C:/Users/edmondsonef/Desktop/agg.xlsx", sheet = "Final.blood")
+data <- read_excel("C:/Users/edmondsonef/Desktop/agg.xlsx", sheet = "Final.blood2")
 ggdf <- data
 
 
-color_clusters <- c("#7BAFDE", "#7570B3", "#882E72", "#B17BA6", "#FF7F00", 
-                    "#DC050C", "#FB8072", "#FDB462", #"#E7298A", "#E78AC3", 
-                    "#33A02C", "#B2DF8A", "#55A1B1", "#8DD3C7", "#A6761D", 
+color_clusters <- c("#7BAFDE", "#7570B3", "#882E72", "#B17BA6", "#DC050C", 
+                    "#33A02C", "#B2DF8A","#FF7F00", "#FB8072", "#FDB462", #"#E7298A", "#E78AC3", 
+                     "#55A1B1", "#8DD3C7", "#A6761D", 
                     "#E6AB02", "#1965B0", "#BEAED4", "#666666", "#999999", 
                     "#aa8282", "#d4b7b7", "#8600bf", "#ba5ce3", "#808000", 
                     "#aeae5c", "#1e90ff", "#00bfff", "#56ff0d", "#ffff00")
 
-plot <- ggplot(ggdf, aes(x = ID, y = proportion, fill = cluster)) +
+# color_clusters <- c("#DC050C","#FB8072","#FDB462","#B17BA6","#7BAFDE",
+#                     "#7570B3",  "#882E72", "#B2DF8A","#FF7F00", "#33A02C")
+
+plot <- ggplot(ggdf, aes(x = `Idx`, y = proportion, fill = clusters)) +
   geom_bar(stat = "identity") +
-  facet_wrap(~ GroupX, scales = "free_x") +
+  facet_wrap(~ Group, scales = "free_x", ncol=6) +
   theme_bw() +
-  theme(axis.title.x=element_blank(), text = element_text(size = 10))+
+  theme(axis.title.x=element_blank(), text = element_text(size = 18))+
   labs(title="Blood") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_fill_manual(values = color_clusters) 
 plot
-tiff("blood_plots.tiff", units="in", width=10, height=4, res=600)
+
+setwd("C:/Users/edmondsonef/Desktop/R-plots/")
+tiff("Blood 123 plots.tiff", units="in", width=15, height=7, res=300)
 plot
 dev.off()
 ######### STACKED BAR CHART
 ######### STACKED BAR CHART
 ######### STACKED BAR CHART
+
+data <- read_excel("C:/Users/edmondsonef/Desktop/agg.xlsx", sheet = "counts.1")
+spleen <- data[ which(data$Tissue=='Spleen'), ]
+
+ggplot(data, aes(x = data$'% Human', y = data$'CD45 Cells')) +
+  geom_point(aes(color = data$Group), size = 5)+
+  facet_wrap(~ Tissue, scales = "free_x", ncol=3)+
+  scale_x_continuous(name = "% huCD45+") +
+  scale_y_continuous(name = "Number CD45 Cells") +
+  theme_bw(base_size = 18)+
+  stat_smooth(method = "lm",
+              col = "#C42126",
+              se = F,
+              size = 1)
+
+
 
 
 
